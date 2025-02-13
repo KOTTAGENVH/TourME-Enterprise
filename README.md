@@ -1,7 +1,7 @@
 # Tour-Me---Frontend (Buisness side Demo [Souvenier,Destination,Hotel])
 
 
-><img width="1675" alt="Screenshot 2024-02-14 at 05 06 52" src="https://github.com/KOTTAGENVH/TourMe-Enterprise/assets/87430226/a645e8e4-b2d1-4a9e-9f2e-a3abf794f58c">
+><img width="1435" alt="Screenshot 2025-02-13 at 23 28 36" src="https://github.com/user-attachments/assets/13706224-726b-4d4a-b6e4-c719eb8dad51" />
 
 
 >This is a small project done by me(Nowen Kottage) using the MERN stack, Redux, Rapid Api. The main motive of this project is to give the user a platform where they can find details of Sri - Lanka and also book hotels, destinations and purchase souvenirs. Pls note that this is a DEMO. Note: Images and text were taken from the internet.
