@@ -294,7 +294,7 @@ function ViewOneSouvenier() {
         </List>
       </Drawer>
 
-      {data !== undefined && data.length !== 0 ? (
+      {data !== undefined && data?.length !== 0 ? (
         <div
           style={{
             marginTop: "80px",
