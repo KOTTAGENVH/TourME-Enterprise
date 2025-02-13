@@ -327,7 +327,7 @@ function ViewAllDestination() {
         </List>
       </Drawer>
 
-      {data !== undefined && data.length !== 0 ? (
+      {data !== undefined && data?.length !== 0 ? (
         <div>
           <TextField
             required
