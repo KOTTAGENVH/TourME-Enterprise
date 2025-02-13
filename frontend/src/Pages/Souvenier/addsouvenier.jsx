@@ -8,11 +8,9 @@ import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Grid from "@mui/material/Grid";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import { MuiFileInput } from "mui-file-input";
 import MainListItems from "./Components/listItems";
 import Menu from "@mui/material/Menu";
 import Avatar from "@mui/material/Avatar";
@@ -33,8 +31,9 @@ import { useNavigate } from "react-router-dom";
 import { MuiTelInput } from "mui-tel-input";
 import TextField from "@mui/material/TextField";
 import { ToastContainer, toast } from "react-toastify";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../Api/firebase";
+// Removed Firebase Storage imports since we are not using Firebase Storage
+// import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
+// import { storage } from "../../Api/firebase";
 import { useState } from "react";
 import * as Yup from "yup";
 import { addSouvenier } from "../../Api/services/souvenierService";
@@ -89,9 +88,10 @@ export default function AddSouvenier() {
   const settings = ["Profile", "Logout"];
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [darkMode, setDarkMode] = React.useState(false);
-  const [image1, setImage1] = React.useState(null);
-  const [image2, setImage2] = React.useState(null);
-  const [video, setVideo] = React.useState(null);
+  // Instead of storing file objects, we now store URL strings:
+  const [image1, setImage1] = React.useState("");
+  const [image2, setImage2] = React.useState("");
+  const [video, setVideo] = React.useState("");
   const [threedimage, setThreedImage] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
@@ -116,7 +116,6 @@ export default function AddSouvenier() {
   const [threedimageerror, setThreedImageerror] = useState("");
   const [telerror, setTelerror] = useState("");
 
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -129,46 +128,33 @@ export default function AddSouvenier() {
         prevProgress >= 100 ? 0 : prevProgress + 10
       );
     }, 800);
-
     return () => {
       clearInterval(timer);
     };
   }, []);
 
-  const handleColor = () => {
-    if (darkmode) {
-      return "white";
-    } else {
-      return "black";
-    }
-  };
+  const handleColor = () => (darkmode ? "white" : "black");
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
-
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
     dispatch(setdarkmode(!darkMode));
   };
-
   const handleMenuItemClick = (setting) => {
     handleCloseUserMenu();
-
     if (setting === "Logout") {
       dispatch(signOutAction());
       navigate("/");
-      handleCloseUserMenu();
     } else if (setting === "Profile") {
       navigate("/profile");
-    } else {
-      handleCloseUserMenu();
     }
   };
+
   const [open, setOpen] = React.useState(true);
   const toggleDrawer = () => {
     setOpen(!open);
@@ -181,6 +167,7 @@ export default function AddSouvenier() {
     }
   };
 
+  // Modified validation: image1, image2, and video are now expected as URL strings.
   const validationSchema = Yup.object().shape({
     title: Yup.string().trim().required("Souvenier Name is required"),
     maindescription: Yup.string()
@@ -191,40 +178,21 @@ export default function AddSouvenier() {
       .max(400, "Description must be at most 400 characters")
       .trim()
       .required("Description is required"),
-    image1: Yup.mixed()
-      .required("Image is required")
-      .test(
-        "fileSize",
-        "File size is too large. Maximum size is 5MB.",
-        (value) => value && value.size <= 5000000
-      )
-      .test(
-        "fileType",
-        "Unsupported file type. Please upload an image.",
-        (value) => value && ["image/jpeg", "image/png"].includes(value.type)
-      ),
-    image2: Yup.mixed()
-      .required("Image is required")
-      .test(
-        "fileSize",
-        "File size is too large. Maximum size is 5MB.",
-        (value) => value && value.size <= 5000000
-      )
-      .test(
-        "fileType",
-        "Unsupported file type. Please upload an image.",
-        (value) => value && ["image/jpeg", "image/png"].includes(value.type)
-      ),
-    video: Yup.mixed()
-      .required("Video is required")
-      .test(
-        "fileSize",
-        "File size is too large. Maximum size is 100MB.",
-        (value) => value && value.size <= 100000000
-      ),
+    image1: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Image URL is required"),
+    image2: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Image URL is required"),
+    video: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Video URL is required"),
     threedimage: Yup.string()
       .trim()
-      .required("Add the 3D image url is required"),
+      .required("Add the 3D image URL is required"),
     price: Yup.number()
       .required("Price is required")
       .positive("Price must be greater than 0"),
@@ -240,57 +208,46 @@ export default function AddSouvenier() {
     setTitle(e.target.value);
     setTitleerror("");
   };
-
   const handleMaindescriptionChange = (e) => {
     setMaindescription(e.target.value);
     setMaindescriptionerror("");
   };
-
   const handleDescriptionChange = (e) => {
     setDescription(e.target.value);
     setDescriptionerror("");
   };
-
   const handleImage1Change = (e) => {
-    setImage1(e);
+    setImage1(e.target.value);
     setImage1error("");
   };
-
   const handleImage2Change = (e) => {
-    setImage2(e);
+    setImage2(e.target.value);
     setImage2error("");
   };
-
   const handleThreedimageChange = (e) => {
     setThreedImage(e.target.value);
     setThreedImageerror("");
   };
-
   const handleVideoChange = (e) => {
-    setVideo(e);
+    setVideo(e.target.value);
     setVideoerror("");
   };
-
   const handlePriceChange = (e) => {
     setPrice(e.target.value);
     setPriceerror("");
   };
-
   const handleQuantityChange = (e) => {
     setQuantity(e.target.value);
     setQuantityerror("");
   };
-
   const handleAddressChange = (e) => {
     setAddress(e.target.value);
     setAddresserror("");
   };
-
   const handleAddress1Change = (e) => {
     setAddress1(e.target.value);
     setAddress1error("");
   };
-
   const handleTelChange = (e) => {
     setTel(e);
     setTelerror("");
@@ -299,7 +256,6 @@ export default function AddSouvenier() {
   const handleSubmit = async (e) => {
     try {
       setLoading(true);
-
       // Validate the form data
       await validationSchema.validate(
         {
@@ -319,24 +275,10 @@ export default function AddSouvenier() {
         { abortEarly: false }
       );
 
-      let url1 = "";
-      let url2 = "";
-      let url3 = "";
-
-      if (image1 !== null && image2 !== null && video !== null) {
-        const storage1Ref = ref(storage, image1?.name);
-        const storage2Ref = ref(storage, image2?.name);
-        const storage3Ref = ref(storage, video?.name);
-
-        const uploadTask1 = await uploadBytes(storage1Ref, image1);
-        url1 = await getDownloadURL(uploadTask1.ref);
-
-        const uploadTask2 = await uploadBytes(storage2Ref, image2);
-        url2 = await getDownloadURL(uploadTask2.ref);
-
-        const uploadTask3 = await uploadBytes(storage3Ref, video);
-        url3 = await getDownloadURL(uploadTask3.ref);
-      }
+      // Here, we assume image1, image2, and video are valid URLs
+      const url1 = image1;
+      const url2 = image2;
+      const url3 = video;
 
       await addSouvenier(
         title,
@@ -362,7 +304,6 @@ export default function AddSouvenier() {
       setLoading(false);
       console.log("Error Adding Souvenier", error);
       toast.error("Error Adding Souvenier");
-
       if (error.name === "ValidationError") {
         error.inner.forEach((e) => {
           switch (e.path) {
@@ -391,7 +332,7 @@ export default function AddSouvenier() {
               setPriceerror(e.message);
               break;
             case "quantity":
-              setQuantity(e.message);
+              setQuantityerror(e.message);
               break;
             case "Address":
               setAddresserror(e.message);
@@ -406,6 +347,7 @@ export default function AddSouvenier() {
       }
     }
   };
+
   return (
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <AppBar
@@ -417,40 +359,20 @@ export default function AddSouvenier() {
           boxShadow: "none",
         }}
       >
-        <Toolbar
-          sx={{
-            pr: "24px",
-          }}
-        >
+        <Toolbar sx={{ pr: "24px" }}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={toggleDrawer}
-            sx={{
-              marginRight: "36px",
-              ...(open && { display: "none" }),
-            }}
+            sx={{ marginRight: "36px", ...(open && { display: "none" }) }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            noWrap
-            sx={{ flexGrow: 1 }}
-          >
+          <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
             Souvenier Management
           </Typography>
-          <FormGroup
-            sx={{
-              marginLeft: "60%",
-              justifyContent: "flex-end",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          <FormGroup sx={{ marginLeft: "60%", justifyContent: "flex-end", display: "flex", alignItems: "center" }}>
             <FormControlLabel
               control={
                 <Switch
@@ -463,43 +385,24 @@ export default function AddSouvenier() {
               }
             />
           </FormGroup>
-          <Box
-            sx={{
-              flexGrow: 1,
-              justifyContent: "flex-end",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          <Box sx={{ flexGrow: 1, justifyContent: "flex-end", display: "flex", alignItems: "center" }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt="User Avatar" src="/static/images/avatar/2.jpg" />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{
-                mt: "45px",
-                marginLeft: "auto",
-              }}
+              sx={{ mt: "45px", marginLeft: "auto" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
               keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleMenuItemClick(setting)}
-                >
+                <MenuItem key={setting} onClick={() => handleMenuItemClick(setting)}>
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
@@ -517,14 +420,7 @@ export default function AddSouvenier() {
           },
         }}
       >
-        <Toolbar
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            px: [1],
-          }}
-        >
+        <Toolbar sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", px: [1] }}>
           <IconButton onClick={toggleDrawer}>
             <ChevronLeftIcon />
           </IconButton>
@@ -547,17 +443,13 @@ export default function AddSouvenier() {
           backdropFilter: "blur(10px)",
           borderRadius: "20px",
           marginBottom: "20px",
-          overflowY: "auto", 
+          overflowY: "auto",
           overflowX: "hidden",
         }}
       >
         <ToastContainer />
         <div style={{ flex: 1 }}>
-          <Typography
-            variant="h3"
-            textAlign="center"
-            sx={{ color: handleColor() }}
-          >
+          <Typography variant="h3" textAlign="center" sx={{ color: handleColor() }}>
             Add Souvenier
           </Typography>
           <Grid container spacing={2} sx={{ marginTop: "1vh" }}>
@@ -568,18 +460,10 @@ export default function AddSouvenier() {
                 variant="outlined"
                 fullWidth
                 value={title}
-                onChange={(e) => {
-                  handleTitleChange(e);
-                }}
+                onChange={handleTitleChange}
                 helperText={titleerror}
-                error={false}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!titleerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -589,257 +473,148 @@ export default function AddSouvenier() {
                 variant="outlined"
                 fullWidth
                 value={maindescription}
-                onChange={(e) => {
-                  handleMaindescriptionChange(e);
-                }}
+                onChange={handleMaindescriptionChange}
                 helperText={maindescriptionerror}
-                error={false}
-                inputProps={{
-                  maxLength: 100,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!maindescriptionerror}
+                inputProps={{ maxLength: 100 }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 id="outlined-multiline-static"
-                label="Description "
+                label="Description"
                 variant="outlined"
                 multiline
                 fullWidth
                 value={description}
-                onChange={(e) => {
-                  handleDescriptionChange(e);
-                }}
+                onChange={handleDescriptionChange}
                 helperText={descriptionerror}
                 rows={5}
-                inputProps={{
-                  maxLength: 400,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400 }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
+            {/* URL Input Fields for Images and Videos */}
             <Grid item xs={12} sm={6}>
-              <MuiFileInput
-                sx={{ height: "8vh" }}
+              <TextField
+                id="outlined-image1-url"
+                label="Image URL 1"
+                variant="outlined"
                 fullWidth
                 value={image1}
-                label="Upload your image"
-                onChange={(e) => {
-                  handleImage1Change(e);
-                }}
+                onChange={handleImage1Change}
                 helperText={image1error}
-                error={false}
-                InputProps={{
-                  inputProps: {
-                    accept: "image/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
-              />
-              <MuiFileInput
-                sx={{ height: "8vh" }}
-                fullWidth
-                error={false}
-                label="Upload your image"
-                value={image2}
-                helperText={image2error}
-                onChange={(e) => {
-                  handleImage2Change(e);
-                }}
-                InputProps={{
-                  inputProps: {
-                    accept: "image/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
-              />
-              <MuiFileInput
-                sx={{ height: "8vh" }}
-                fullWidth
-                error={false}
-                label="Upload your video"
-                value={video}
-                helperText={videoerror}
-                onChange={(e) => {
-                  handleVideoChange(e);
-                }}
-                InputProps={{
-                  inputProps: {
-                    accept: "video/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
+                error={!!image1error}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
               <TextField
-                id="outlined-basic"
-                label="Add 3D image url"
+                id="outlined-image2-url"
+                label="Image URL 2"
+                variant="outlined"
+                fullWidth
+                value={image2}
+                onChange={handleImage2Change}
+                helperText={image2error}
+                error={!!image2error}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+                sx={{ marginTop: "1vh" }}
+              />
+              <TextField
+                id="outlined-video-url"
+                label="Video URL"
+                variant="outlined"
+                fullWidth
+                value={video}
+                onChange={handleVideoChange}
+                helperText={videoerror}
+                error={!!videoerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+                sx={{ marginTop: "1vh" }}
+              />
+              <TextField
+                id="outlined-threed-url"
+                label="3D Image URL"
                 variant="outlined"
                 fullWidth
                 value={threedimage}
-                onChange={(e) => {
-                  handleThreedimageChange(e);
-                }}
+                onChange={handleThreedimageChange}
                 helperText={threedimageerror}
-                error={false}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!threedimageerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+                sx={{ marginTop: "1vh" }}
               />
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-              }}
-            >
+            <Grid item xs={12} sm={6} sx={{ display: "flex", flexDirection: "row" }}>
               <TextField
-                id="outlined-basic"
-                label="Price "
+                id="outlined-price"
+                label="Price"
                 variant="outlined"
                 value={price}
-                onChange={(e) => {
-                  handlePriceChange(e);
-                }}
-                error={false}
+                onChange={handlePriceChange}
+                error={!!priceerror}
                 helperText={priceerror}
                 sx={{ marginLeft: "1vw", width: "15vw" }}
-                inputProps={{
-                  maxLength: 400,
-                  type: "number",
-                  onInput: handleInputChange,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400, type: "number", onInput: handleInputChange }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
-
               <TextField
-                id="outlined-basic"
-                label="Quantity "
+                id="outlined-quantity"
+                label="Quantity"
                 variant="outlined"
                 value={quantity}
-                onChange={(e) => {
-                  handleQuantityChange(e);
-                }}
-                error={false}
-                helperText={setQuantityerror}
+                onChange={handleQuantityChange}
+                error={!!Noquantityerror}
+                helperText={Noquantityerror}
                 sx={{ marginLeft: "1vw", width: "15vw" }}
-                inputProps={{
-                  maxLength: 400,
-                  type: "number",
-                  onInput: handleInputChange,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400, type: "number", onInput: handleInputChange }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                id="outlined-basic-multiline"
-                label="Address 2(City, State, Country, Pincode)"
+                id="outlined-address1"
+                label="Address 1 (House No, Street Name)"
+                variant="outlined"
+                value={Address}
+                onChange={handleAddressChange}
+                helperText={Addresserror}
+                error={!!Addresserror}
+                fullWidth
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                id="outlined-address2"
+                label="Address 2 (City, State, Country, Pincode)"
                 variant="outlined"
                 value={Address1}
-                onChange={(e) => {
-                  handleAddress1Change(e);
-                }}
+                onChange={handleAddress1Change}
                 helperText={Address1error}
-                error={false}
+                error={!!Address1error}
                 fullWidth
                 multiline
                 rows={2}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                id="outlined-basic"
-                label="Address 1(House No, Street Name)"
-                variant="outlined"
-                value={Address}
-                onChange={(e) => {
-                  handleAddressChange(e);
-                }}
-                helperText={Addresserror}
-                error={false}
-                fullWidth
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <MuiTelInput
                 value={tel}
                 fullWidth
-                onChange={(e) => {
-                  handleTelChange(e);
-                }}
-                style={{
-                  color: handleColor(),
-                }}
+                onChange={handleTelChange}
+                style={{ color: handleColor() }}
                 label="Telephone"
               />
             </Grid>
           </Grid>
-          <div
-            sx={{
-              justifyContent: "right",
-              alignItems: "right",
-              justifySelf: "right",
-            }}
-          >
+          <div style={{ display: "flex", justifyContent: "right", marginTop: "4vh" }}>
             {loading ? (
               <CircularProgress
                 sx={{
-                  marginTop: "4vh",
                   width: "10vw",
                   height: "5vh",
-                  marginLeft: "50vw",
-                  marginRight: "auto",
-                  justifyContent: "center",
-                  alignItems: "right",
-                  justifySelf: "right",
-                  alignSelf: "right",
                 }}
                 variant="determinate"
                 value={progress}
@@ -848,15 +623,8 @@ export default function AddSouvenier() {
               <Button
                 variant="contained"
                 sx={{
-                  marginTop: "4vh",
                   width: "10vw",
                   height: "5vh",
-                  marginLeft: "50vw",
-                  marginRight: "auto",
-                  justifyContent: "center",
-                  alignItems: "right",
-                  justifySelf: "right",
-                  alignSelf: "right",
                   backgroundColor: "black",
                   color: "white",
                 }}
