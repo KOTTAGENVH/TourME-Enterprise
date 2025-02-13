@@ -1,0 +1,30 @@
+
+.dark-calendar .rbc-events-container,
+.dark-calendar .rbc-day-bg,
+.dark-calendar .rbc-row,
+.dark-calendar .rbc-toolbar button:active,
+.dark-calendar .rbc-toolbar
+.dark-calendar button.rbc-active 
+
+{
+  background: black;
+  color: white; 
+}
+
+
+
+.light-calendar
+  .rbc-btn-group
+  .rbc-day-slot
+  .rbc-events-container
+  .rbc-day-bg
+  .rbc-row
+  .rbc-day-bg
+  .rbc-toolbar
+  button:active
+  .rbc-toolbar
+  button.rbc-active {
+  color: black;
+  background-color: white;
+}
+
