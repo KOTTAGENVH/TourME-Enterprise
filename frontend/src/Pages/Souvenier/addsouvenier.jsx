@@ -31,9 +31,6 @@ import { useNavigate } from "react-router-dom";
 import { MuiTelInput } from "mui-tel-input";
 import TextField from "@mui/material/TextField";
 import { ToastContainer, toast } from "react-toastify";
-// Removed Firebase Storage imports since we are not using Firebase Storage
-// import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-// import { storage } from "../../Api/firebase";
 import { useState } from "react";
 import * as Yup from "yup";
 import { addSouvenier } from "../../Api/services/souvenierService";

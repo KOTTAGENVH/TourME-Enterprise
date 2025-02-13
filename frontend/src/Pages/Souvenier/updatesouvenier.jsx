@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-globals */
 import * as React from "react";
 import { styled } from "@mui/material/styles";
 import { useQuery } from "react-query";
@@ -34,14 +35,9 @@ import { useNavigate } from "react-router-dom";
 import { MuiTelInput } from "mui-tel-input";
 import TextField from "@mui/material/TextField";
 import { ToastContainer, toast } from "react-toastify";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../Api/firebase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Yup from "yup";
-import {
-  getSouvenierById,
-  updateSouvenierById,
-} from "../../Api/services/souvenierService";
+import { getSouvenierById, updateSouvenierById } from "../../Api/services/souvenierService";
 
 const drawerWidth = 240;
 
@@ -90,31 +86,35 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 export default function UpdateSouvenier() {
+  const idState = useSelector((state) => state.id.id);
   const { data } = useQuery({
     queryFn: () => getSouvenierById(idState),
+    enabled: !!idState,
   });
 
   const settings = ["Profile", "Logout"];
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [darkMode, setDarkMode] = React.useState(false);
-  const [image1, setImage1] = React.useState(null);
-  const [image2, setImage2] = React.useState(null);
-  const [video, setVideo] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const [title, setTitle] = useState(data?.title || "");
-  const [maindescription, setMaindescription] = useState(
-    data?.maindescription || ""
-  );
-  const [description, setDescription] = useState(data?.description || "");
-  const [price, setPrice] = useState(data?.price || "");
-  const [quantity, setQuantity] = useState(data?.NoTickets || "");
-  const [Address, setAddress] = useState(data?.Address || "");
-  const [Address1, setAddress1] = useState(data?.Address1 || "");
-  const [tel, setTel] = useState(data?.usertel || "");
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+  // Instead of file objects, we use URL strings for images and video
+  const [image1, setImage1] = useState("");
+  const [image2, setImage2] = useState("");
+  const [video, setVideo] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [title, setTitle] = useState("");
+  const [maindescription, setMaindescription] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [quantity, setQuantity] = useState("");
+  const [Address, setAddress] = useState("");
+  const [Address1, setAddress1] = useState("");
+  const [tel, setTel] = useState("");
+  // 3D image URL is stored as a string
+  const [threedimage, setThreedimage] = useState("");
+  
+  // Error state variables
   const [titleerror, setTitleerror] = useState("");
   const [maindescriptionerror, setMaindescriptionerror] = useState("");
-  const [threedimage, setThreedimage] = useState(data?.description || "");
   const [descriptionerror, setDescriptionerror] = useState("");
   const [priceerror, setPriceerror] = useState("");
   const [Quantityerror, setQuantityerror] = useState("");
@@ -128,74 +128,58 @@ export default function UpdateSouvenier() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const darkmode = useSelector((state) => state.darkmode.darkmode);
   const loggedUser = useSelector((state) => state.auth.loggedUser);
-  const idState = useSelector((state) => state.id.id);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (data) {
       setTitle(data.title || "");
       setMaindescription(data.maindescription || "");
       setDescription(data.description || "");
       setPrice(data.price || "");
-      setQuantity(data?.Quatity || "");
+      setQuantity(data.NoTickets || "");
       setAddress(data.Address || "");
       setAddress1(data.Address1 || "");
       setTel(data.usertel || "");
       setThreedimage(data.threedimage || "");
+      // If images or video already exist, use them as defaults:
+      setImage1(data.image || "");
+      setImage2(data.image1 || "");
+      setVideo(data.video || "");
     }
   }, [data]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
-      setProgress((prevProgress) =>
-        prevProgress >= 100 ? 0 : prevProgress + 10
-      );
+      setProgress((prevProgress) => (prevProgress >= 100 ? 0 : prevProgress + 10));
     }, 800);
-
-    return () => {
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, []);
 
-  const handleColor = () => {
-    if (darkmode) {
-      return "white";
-    } else {
-      return "black";
-    }
-  };
+  const handleColor = () => (darkMode ? "white" : "black");
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
-
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
     dispatch(setdarkmode(!darkMode));
   };
-
   const handleMenuItemClick = (setting) => {
     handleCloseUserMenu();
-
     if (setting === "Logout") {
       dispatch(signOutAction());
       navigate("/");
-      handleCloseUserMenu();
     } else if (setting === "Profile") {
       navigate("/profile");
-    } else {
-      handleCloseUserMenu();
     }
   };
-  const [open, setOpen] = React.useState(true);
+
+  const [openDrawer, setOpenDrawer] = useState(true);
   const toggleDrawer = () => {
-    setOpen(!open);
+    setOpenDrawer(!openDrawer);
   };
 
   const handleInputChange = (event) => {
@@ -205,6 +189,7 @@ export default function UpdateSouvenier() {
     }
   };
 
+  // Validation schema: note that image1, image2, and video fields are expected as URLs
   const validationSchema = Yup.object().shape({
     title: Yup.string().trim().required("Destination Name is required"),
     maindescription: Yup.string()
@@ -224,7 +209,7 @@ export default function UpdateSouvenier() {
     Address: Yup.string().trim().required("Address is required"),
     Address1: Yup.string().trim().required("Address is required"),
     tel: Yup.string().trim().required("Telephone is required"),
-    threedimage: Yup.string().trim().required("3D Image is required"),
+    threedimage: Yup.string().trim().required("3D Image URL is required"),
   });
 
   const handleTitleChange = (e) => {
@@ -242,18 +227,19 @@ export default function UpdateSouvenier() {
     setDescriptionerror("");
   };
 
+  // For URL inputs, update the state from the text field
   const handleImage1Change = (e) => {
-    setImage1(e);
+    setImage1(e.target.value);
     setImage1error("");
   };
 
   const handleImage2Change = (e) => {
-    setImage2(e);
+    setImage2(e.target.value);
     setImage2error("");
   };
 
   const handleVideoChange = (e) => {
-    setVideo(e);
+    setVideo(e.target.value);
     setVideoerror("");
   };
 
@@ -290,8 +276,7 @@ export default function UpdateSouvenier() {
   const handleSubmit = async (e) => {
     try {
       setLoading(true);
-
-      // Validate the form data
+      // Validate the form data using the updated schema
       await validationSchema.validate(
         {
           title,
@@ -301,34 +286,16 @@ export default function UpdateSouvenier() {
           quantity,
           Address,
           Address1,
-          threedimage,
           tel,
+          threedimage,
         },
         { abortEarly: false }
       );
 
-      let url1 = "";
-      let url2 = "";
-      let url3 = "";
-
-      const finalUrl1 = url1 || data?.image || "";
-      const finalUrl2 = url2 || data?.image1 || "";
-      const finalUrl3 = url3 || data?.video || "";
-
-      if (image1 !== null && image2 !== null && video !== null) {
-        const storage1Ref = ref(storage, image1?.name);
-        const storage2Ref = ref(storage, image2?.name);
-        const storage3Ref = ref(storage, video?.name);
-
-        const uploadTask1 = await uploadBytes(storage1Ref, image1);
-        url1 = await getDownloadURL(uploadTask1.ref);
-
-        const uploadTask2 = await uploadBytes(storage2Ref, image2);
-        url2 = await getDownloadURL(uploadTask2.ref);
-
-        const uploadTask3 = await uploadBytes(storage3Ref, video);
-        url3 = await getDownloadURL(uploadTask3.ref);
-      }
+      // Use entered URL values if provided; otherwise, fallback to existing data
+      const finalUrl1 = image1 || data?.image || "";
+      const finalUrl2 = image2 || data?.image1 || "";
+      const finalUrl3 = video || data?.video || "";
 
       await updateSouvenierById(
         idState,
@@ -354,45 +321,44 @@ export default function UpdateSouvenier() {
     } catch (error) {
       setLoading(false);
       toast.error("Error Updating Destination");
-
       if (error.name === "ValidationError") {
-        error.inner.forEach((e) => {
-          switch (e.path) {
+        error.inner.forEach((err) => {
+          switch (err.path) {
             case "title":
-              setTitleerror(e.message);
+              setTitleerror(err.message);
               break;
             case "maindescription":
-              setMaindescriptionerror(e.message);
+              setMaindescriptionerror(err.message);
               break;
             case "description":
-              setDescriptionerror(e.message);
+              setDescriptionerror(err.message);
               break;
             case "image1":
-              setImage1error(e.message);
+              setImage1error(err.message);
               break;
             case "image2":
-              setImage2error(e.message);
+              setImage2error(err.message);
               break;
             case "video":
-              setVideoerror(e.message);
+              setVideoerror(err.message);
               break;
             case "threedimage":
-              setThreedimageerror(e.message);
+              setThreedimageerror(err.message);
               break;
             case "price":
-              setPriceerror(e.message);
+              setPriceerror(err.message);
               break;
             case "quantity":
-              setQuantityerror(e.message);
+              setQuantityerror(err.message);
               break;
             case "Address":
-              setAddresserror(e.message);
+              setAddresserror(err.message);
               break;
             case "Address1":
-              setAddress1error(e.message);
+              setAddress1error(err.message);
               break;
             case "tel":
-              setTelerror(e.message);
+              setTelerror(err.message);
               break;
             default:
               break;
@@ -413,30 +379,17 @@ export default function UpdateSouvenier() {
           boxShadow: "none",
         }}
       >
-        <Toolbar
-          sx={{
-            pr: "24px", // keep right padding when drawer closed
-          }}
-        >
+        <Toolbar sx={{ pr: "24px" }}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={toggleDrawer}
-            sx={{
-              marginRight: "36px",
-              ...(open && { display: "none" }),
-            }}
+            sx={{ marginRight: "36px", ...(open && { display: "none" }) }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            noWrap
-            sx={{ flexGrow: 1 }}
-          >
+          <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
             Souvenier Management
           </Typography>
           <FormGroup
@@ -459,7 +412,6 @@ export default function UpdateSouvenier() {
               }
             />
           </FormGroup>
-
           <Box
             sx={{
               flexGrow: 1,
@@ -470,33 +422,21 @@ export default function UpdateSouvenier() {
           >
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt="User Avatar" src="/static/images/avatar/2.jpg" />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{
-                mt: "45px",
-                marginLeft: "auto",
-              }}
+              sx={{ mt: "45px", marginLeft: "auto" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
               keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleMenuItemClick(setting)}
-                >
+                <MenuItem key={setting} onClick={() => handleMenuItemClick(setting)}>
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
@@ -507,21 +447,9 @@ export default function UpdateSouvenier() {
       <Drawer
         variant="permanent"
         open={open}
-        sx={{
-          "& .MuiDrawer-paper": {
-            backgroundColor: "rgba(255, 255, 255, 0.7)",
-            height: "100vh",
-          },
-        }}
+        sx={{ "& .MuiDrawer-paper": { backgroundColor: "rgba(255, 255, 255, 0.7)", height: "100vh" } }}
       >
-        <Toolbar
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            px: [1],
-          }}
-        >
+        <Toolbar sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", px: [1] }}>
           <IconButton onClick={toggleDrawer}>
             <ChevronLeftIcon />
           </IconButton>
@@ -550,11 +478,7 @@ export default function UpdateSouvenier() {
       >
         <ToastContainer />
         <div style={{ flex: 1 }}>
-          <Typography
-            variant="h3"
-            textAlign="center"
-            sx={{ color: handleColor() }}
-          >
+          <Typography variant="h3" textAlign="center" sx={{ color: handleColor() }}>
             Update Souvenier
           </Typography>
           <Grid container spacing={2} sx={{ marginTop: "1vh" }}>
@@ -565,18 +489,10 @@ export default function UpdateSouvenier() {
                 variant="outlined"
                 fullWidth
                 value={title || data?.title}
-                onChange={(e) => {
-                  handleTitleChange(e);
-                }}
+                onChange={handleTitleChange}
                 helperText={titleerror}
-                error={false}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!titleerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -586,265 +502,144 @@ export default function UpdateSouvenier() {
                 variant="outlined"
                 fullWidth
                 value={maindescription || data?.maindescription}
-                onChange={(e) => {
-                  handleMaindescriptionChange(e);
-                }}
+                onChange={handleMaindescriptionChange}
                 helperText={maindescriptionerror}
-                error={false}
-                inputProps={{
-                  maxLength: 100,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!maindescriptionerror}
+                inputProps={{ maxLength: 100 }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 id="outlined-multiline-static"
-                label="Description "
+                label="Description"
                 variant="outlined"
                 multiline
                 fullWidth
                 value={description || data?.description}
-                onChange={(e) => {
-                  handleDescriptionChange(e);
-                }}
+                onChange={handleDescriptionChange}
                 helperText={descriptionerror}
                 rows={5}
-                inputProps={{
-                  maxLength: 400,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400 }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <MuiFileInput
-                sx={{ height: "8vh" }}
+              {/* Here we remove Firebase file inputs and expect URLs instead */}
+              <TextField
+                id="outlined-image1-url"
+                label="Image URL 1"
+                variant="outlined"
                 fullWidth
-                value={image1}
-                label="Upload your image"
-                onChange={(e) => {
-                  handleImage1Change(e);
-                }}
+                value={image1 || data?.image}
+                onChange={handleImage1Change}
                 helperText={image1error}
-                error={false}
-                InputProps={{
-                  inputProps: {
-                    accept: "image/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
-              />
-              <MuiFileInput
-                sx={{ height: "8vh" }}
-                fullWidth
-                error={false}
-                label="Upload your image"
-                value={image2}
-                helperText={image2error}
-                onChange={(e) => {
-                  handleImage2Change(e);
-                }}
-                InputProps={{
-                  inputProps: {
-                    accept: "image/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
-              />
-              <MuiFileInput
-                sx={{ height: "8vh" }}
-                fullWidth
-                error={false}
-                label="Upload your video"
-                value={video}
-                helperText={videoerror}
-                onChange={(e) => {
-                  handleVideoChange(e);
-                }}
-                InputProps={{
-                  inputProps: {
-                    accept: "video/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
+                error={!!image1error}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
               <TextField
-                id="outlined-basic"
-                label="Add 3D image url"
+                id="outlined-image2-url"
+                label="Image URL 2"
+                variant="outlined"
+                fullWidth
+                value={image2 || data?.image1}
+                onChange={handleImage2Change}
+                helperText={image2error}
+                error={!!image2error}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+                sx={{ marginTop: "1vh" }}
+              />
+              <TextField
+                id="outlined-video-url"
+                label="Video URL"
+                variant="outlined"
+                fullWidth
+                value={video || data?.video}
+                onChange={handleVideoChange}
+                helperText={videoerror}
+                error={!!videoerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+                sx={{ marginTop: "1vh" }}
+              />
+              <TextField
+                id="outlined-threed-url"
+                label="3D Image URL"
                 variant="outlined"
                 fullWidth
                 value={threedimage || data?.threedimage}
-                onChange={(e) => {
-                  handleThreedimageChange(e);
-                }}
+                onChange={handleThreedimageChange}
                 helperText={threedimageerror}
-                error={false}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!threedimageerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-              }}
-            >
+            <Grid item xs={12} sm={6} sx={{ display: "flex", flexDirection: "row" }}>
               <TextField
-                id="outlined-basic"
-                label="Price "
+                id="outlined-price"
+                label="Price"
                 variant="outlined"
                 value={price || data?.price}
-                onChange={(e) => {
-                  handlePriceChange(e);
-                }}
-                error={false}
+                onChange={handlePriceChange}
+                error={!!priceerror}
                 helperText={priceerror}
                 sx={{ marginLeft: "1vw", width: "15vw" }}
-                inputProps={{
-                  maxLength: 400,
-                  type: "number",
-                  onInput: handleInputChange,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400, type: "number", onInput: handleInputChange }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
-
               <TextField
-                id="outlined-basic"
-                label="Quantity "
+                id="outlined-quantity"
+                label="Quantity"
                 variant="outlined"
-                value={quantity}
-                onChange={(e) => {
-                  handleQuantityChange(e);
-                }}
-                error={false}
+                value={quantity || data?.NoTickets}
+                onChange={handleQuantityChange}
+                error={!!Quantityerror}
                 helperText={Quantityerror}
                 sx={{ marginLeft: "1vw", width: "15vw" }}
-                inputProps={{
-                  maxLength: 400,
-                  type: "number",
-                  onInput: handleInputChange,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400, type: "number", onInput: handleInputChange }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
 
             <Grid item xs={12} sm={6}>
               <TextField
-                id="outlined-basic-multiline"
-                label="Address 2(City, State, Country, Pincode)"
+                id="outlined-address1"
+                label="Address 1 (House No, Street Name)"
+                variant="outlined"
+                value={Address || data?.Address}
+                onChange={handleAddressChange}
+                helperText={Addresserror}
+                error={!!Addresserror}
+                fullWidth
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                id="outlined-address2"
+                label="Address 2 (City, State, Country, Pincode)"
                 variant="outlined"
                 value={Address1 || data?.Address1}
-                onChange={(e) => {
-                  handleAddress1Change(e);
-                }}
+                onChange={handleAddress1Change}
                 helperText={Address1error}
-                error={false}
+                error={!!Address1error}
                 fullWidth
                 multiline
                 rows={2}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                id="outlined-basic"
-                label="Address 1(House No, Street Name)"
-                variant="outlined"
-                value={Address || data?.Address}
-                onChange={(e) => {
-                  handleAddressChange(e);
-                }}
-                helperText={Addresserror}
-                error={false}
-                fullWidth
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
-              />
-            </Grid>
-
             <Grid item xs={12} sm={6}>
               <MuiTelInput
+                value={tel || data?.usertel}
                 fullWidth
-                value={tel}
-                onChange={(e) => {
-                  handleTelChange(e);
-                }}
-                style={{
-                  color: handleColor(),
-                }}
+                onChange={(e) => handleTelChange(e)}
+                style={{ color: handleColor() }}
                 label="Telephone"
               />
             </Grid>
-
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              sx={{
-                justifyContent: "right",
-                display: "flex",
-                alignItems: "right",
-              }}
-            >
+            <Grid item xs={12} sm={6} sx={{ justifyContent: "right", display: "flex", alignItems: "center" }}>
               {loading ? (
-                <CircularProgress
-                  sx={{
-                    marginTop: "4vh",
-                    width: "10vw",
-                    height: "5vh",
-                    marginLeft: "50vw",
-                    marginRight: "auto",
-                    justifyContent: "center",
-                    alignItems: "right",
-                    justifySelf: "right",
-                    alignSelf: "right",
-                  }}
-                  variant="determinate"
-                  value={progress}
-                />
+                <CircularProgress variant="determinate" value={progress} />
               ) : (
                 <Button
                   variant="contained"
@@ -852,12 +647,10 @@ export default function UpdateSouvenier() {
                     marginTop: "4vh",
                     width: "10vw",
                     height: "5vh",
-                    marginLeft: "50vw",
+                    marginLeft: "auto",
                     marginRight: "auto",
                     justifyContent: "center",
-                    alignItems: "right",
-                    justifySelf: "right",
-                    alignSelf: "right",
+                    alignItems: "center",
                     backgroundColor: "black",
                     color: "white",
                   }}

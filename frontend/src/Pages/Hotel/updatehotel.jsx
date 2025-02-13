@@ -10,13 +10,11 @@ import List from "@mui/material/List";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
-import AttachFileIcon from "@mui/icons-material/AttachFile";
 import Grid from "@mui/material/Grid";
 import Modal from "@mui/material/Modal";
 import Link from "@mui/material/Link";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
-import { MuiFileInput } from "mui-file-input";
 import MainListItems from "./Components/listItems";
 import Menu from "@mui/material/Menu";
 import Avatar from "@mui/material/Avatar";
@@ -42,9 +40,7 @@ import GoogleMapImage1 from "../../Resources/GoogleMap1.png";
 import GoogleMapImage2 from "../../Resources/GoogleMap2.png";
 import GoogleMapImage3 from "../../Resources/GoogleMap3.png";
 import GoogleMapImage4 from "../../Resources/GoogleMap4.png";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../Api/firebase";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Yup from "yup";
 import { getHotelById, updateHotelById } from "../../Api/services/hotelService";
 
@@ -95,33 +91,32 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 export default function UpdateHotel() {
+  const idState = useSelector((state) => state.id.id);
   const { data } = useQuery({
     queryFn: () => getHotelById(idState),
+    enabled: !!idState,
   });
 
   const settings = ["Profile", "Logout"];
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const [darkMode, setDarkMode] = React.useState(false);
-  const [image1, setImage1] = React.useState(null);
-  const [image2, setImage2] = React.useState(null);
-  const [virtualVideo, setVirtualVideo] = React.useState(
-    data?.VirtualVideo || ""
-  );
-  const [googlemap, setGooglemap] = React.useState(data?.location || "");
-  const [openmodal, setOpenModal] = React.useState(false);
-  const [loading, setLoading] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const [title, setTitle] = useState(data?.title || "");
-  const [category, setCategory] = useState(data?.category || "");
-  const [maindescription, setMaindescription] = useState(
-    data?.maindescription || ""
-  );
-  const [description, setDescription] = useState(data?.description || "");
-  const [price, setPrice] = useState(data?.price || "");
-  const [NoRooms, setNoRooms] = useState(data?.NoRooms || "");
-  const [Address, setAddress] = useState(data?.Address || "");
-  const [Address1, setAddress1] = useState(data?.Address1 || "");
-  const [tel, setTel] = useState(data?.usertel || "");
+  const [anchorElUser, setAnchorElUser] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
+  // Manage images as URL strings
+  const [image1, setImage1] = useState("");
+  const [image2, setImage2] = useState("");
+  const [virtualVideo, setVirtualVideo] = useState("");
+  const [googlemap, setGooglemap] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("");
+  const [maindescription, setMaindescription] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [NoRooms, setNoRooms] = useState("");
+  const [Address, setAddress] = useState("");
+  const [Address1, setAddress1] = useState("");
+  const [tel, setTel] = useState("");
   const [titleerror, setTitleerror] = useState("");
   const [categoryerror, setCategoryerror] = useState("");
   const [maindescriptionerror, setMaindescriptionerror] = useState("");
@@ -136,17 +131,11 @@ export default function UpdateHotel() {
   const [googlemaperror, setGooglemaperror] = useState("");
   const [telerror, setTelerror] = useState("");
 
-  const handleOpen = () => setOpenModal(true);
-  const handleClose = () => setOpenModal(false);
-
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  const darkmode = useSelector((state) => state.darkmode.darkmode);
   const loggedUser = useSelector((state) => state.auth.loggedUser);
-  const idState = useSelector((state) => state.id.id);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (data) {
       setTitle(data.title || "");
       setCategory(data.category || "");
@@ -159,59 +148,44 @@ export default function UpdateHotel() {
       setGooglemap(data.location || "");
       setTel(data.usertel || "");
       setVirtualVideo(data.VirtualVideo || "");
+      // If images exist, use them as default values
+      setImage1(data.image || "");
+      setImage2(data.image1 || "");
     }
   }, [data]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setInterval(() => {
-      setProgress((prevProgress) =>
-        prevProgress >= 100 ? 0 : prevProgress + 10
-      );
+      setProgress((prevProgress) => (prevProgress >= 100 ? 0 : prevProgress + 10));
     }, 800);
-
-    return () => {
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
   }, []);
 
-  const handleColor = () => {
-    if (darkmode) {
-      return "white";
-    } else {
-      return "black";
-    }
-  };
+  const handleColor = () => (darkMode ? "white" : "black");
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
   };
-
   const handleCloseUserMenu = () => {
     setAnchorElUser(null);
   };
-
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
     dispatch(setdarkmode(!darkMode));
   };
-
   const handleMenuItemClick = (setting) => {
     handleCloseUserMenu();
-
     if (setting === "Logout") {
       dispatch(signOutAction());
       navigate("/");
-      handleCloseUserMenu();
     } else if (setting === "Profile") {
       navigate("/profile");
-    } else {
-      handleCloseUserMenu();
     }
   };
 
-  const [open, setOpen] = React.useState(true);
+  const [openDrawer, setOpenDrawer] = useState(true);
   const toggleDrawer = () => {
-    setOpen(!open);
+    setOpenDrawer(!openDrawer);
   };
 
   const handleInputChange = (event) => {
@@ -221,6 +195,7 @@ export default function UpdateHotel() {
     }
   };
 
+  // Updated validation schema using URL validation for image and virtualVideo fields.
   const validationSchema = Yup.object().shape({
     title: Yup.string().trim().required("Hotel Name is required"),
     category: Yup.string().trim().required("Category is required"),
@@ -232,16 +207,30 @@ export default function UpdateHotel() {
       .max(400, "Description must be at most 400 characters")
       .trim()
       .required("Description is required"),
+    image1: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Image URL is required"),
+    image2: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Image URL is required"),
+    virtualVideo: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Virtual Video URL is required"),
     price: Yup.number()
       .required("Price is required")
       .positive("Price must be greater than 0"),
     NoRooms: Yup.number()
-      .required("Number of Tickets is required")
-      .integer("Number of Tickets must be an integer"),
-    virtualVideo: Yup.string().trim().required("Virtual Video is required"),
+      .required("Number of Rooms is required")
+      .integer("Number of Rooms must be an integer"),
     Address: Yup.string().trim().required("Address is required"),
     Address1: Yup.string().trim().required("Address is required"),
-    googlemap: Yup.string().trim().required("Location is required"),
+    googlemap: Yup.string()
+      .trim()
+      .url("Must be a valid URL")
+      .required("Location is required"),
     tel: Yup.string().trim().required("Telephone is required"),
   });
 
@@ -265,13 +254,14 @@ export default function UpdateHotel() {
     setDescriptionerror("");
   };
 
+  // For URL inputs, update state from the text field
   const handleImage1Change = (e) => {
-    setImage1(e);
+    setImage1(e.target.value);
     setImage1error("");
   };
 
   const handleImage2Change = (e) => {
-    setImage2(e);
+    setImage2(e.target.value);
     setImage2error("");
   };
 
@@ -313,41 +303,28 @@ export default function UpdateHotel() {
   const handleSubmit = async (e) => {
     try {
       setLoading(true);
-
-      // Validate the form data
       await validationSchema.validate(
         {
           title,
           category,
           maindescription,
           description,
+          image1,
+          image2,
+          virtualVideo,
           price,
           NoRooms,
           Address,
           Address1,
-          virtualVideo,
           googlemap,
           tel,
         },
         { abortEarly: false }
       );
 
-      let url1 = "";
-      let url2 = "";
-
-      const finalUrl1 = url1 || data?.image || "";
-      const finalUrl2 = url2 || data?.image1 || "";
-
-      if (image1 !== null && image2 !== null) {
-        const storage1Ref = ref(storage, image1?.name);
-        const storage2Ref = ref(storage, image2?.name);
-
-        const uploadTask1 = await uploadBytes(storage1Ref, image1);
-        url1 = await getDownloadURL(uploadTask1.ref);
-
-        const uploadTask2 = await uploadBytes(storage2Ref, image2);
-        url2 = await getDownloadURL(uploadTask2.ref);
-      }
+      // Use the URL values entered (or fall back to previously stored values)
+      const finalUrl1 = image1 || data?.image || "";
+      const finalUrl2 = image2 || data?.image1 || "";
 
       await updateHotelById(
         idState,
@@ -375,45 +352,44 @@ export default function UpdateHotel() {
       setLoading(false);
       console.log("Error Updating Hotel", error);
       toast.error("Error Updating Hotel");
-
       if (error.name === "ValidationError") {
-        error.inner.forEach((e) => {
-          switch (e.path) {
+        error.inner.forEach((err) => {
+          switch (err.path) {
             case "title":
-              setTitleerror(e.message);
+              setTitleerror(err.message);
               break;
             case "category":
-              setCategoryerror(e.message);
+              setCategoryerror(err.message);
               break;
             case "maindescription":
-              setMaindescriptionerror(e.message);
+              setMaindescriptionerror(err.message);
               break;
             case "description":
-              setDescriptionerror(e.message);
+              setDescriptionerror(err.message);
               break;
             case "image1":
-              setImage1error(e.message);
+              setImage1error(err.message);
               break;
             case "image2":
-              setImage2error(e.message);
+              setImage2error(err.message);
               break;
             case "virtualVideo":
-              setVirtualVideoerror(e.message);
+              setVirtualVideoerror(err.message);
               break;
             case "price":
-              setPriceerror(e.message);
+              setPriceerror(err.message);
               break;
             case "NoRooms":
-              setNoRoomserror(e.message);
+              setNoRoomserror(err.message);
               break;
             case "Address":
-              setAddresserror(e.message);
+              setAddresserror(err.message);
               break;
             case "Address1":
-              setAddress1error(e.message);
+              setAddress1error(err.message);
               break;
             case "googlemap":
-              setGooglemaperror(e.message);
+              setGooglemaperror(err.message);
               break;
             default:
               break;
@@ -427,27 +403,20 @@ export default function UpdateHotel() {
     <Box sx={{ display: "flex", height: "100vh", overflow: "hidden" }}>
       <AppBar
         position="absolute"
-        open={open}
+        open={openDrawer}
         sx={{
           backgroundColor: "transparent",
           backdropFilter: "blur(60px)",
           boxShadow: "none",
         }}
       >
-        <Toolbar
-          sx={{
-            pr: "24px", // keep right padding when drawer closed
-          }}
-        >
+        <Toolbar sx={{ pr: "24px" }}>
           <IconButton
             edge="start"
             color="inherit"
             aria-label="open drawer"
             onClick={toggleDrawer}
-            sx={{
-              marginRight: "36px",
-              ...(open && { display: "none" }),
-            }}
+            sx={{ marginRight: "36px", ...(openDrawer && { display: "none" }) }}
           >
             <MenuIcon />
           </IconButton>
@@ -480,7 +449,6 @@ export default function UpdateHotel() {
               }
             />
           </FormGroup>
-
           <Box
             sx={{
               flexGrow: 1,
@@ -491,33 +459,21 @@ export default function UpdateHotel() {
           >
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar alt="User Avatar" src="/static/images/avatar/2.jpg" />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{
-                mt: "45px",
-                marginLeft: "auto",
-              }}
+              sx={{ mt: "45px", marginLeft: "auto" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
-              anchorOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
+              anchorOrigin={{ vertical: "top", horizontal: "right" }}
               keepMounted
-              transformOrigin={{
-                vertical: "top",
-                horizontal: "right",
-              }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
               open={Boolean(anchorElUser)}
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleMenuItemClick(setting)}
-                >
+                <MenuItem key={setting} onClick={() => handleMenuItemClick(setting)}>
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
@@ -527,22 +483,10 @@ export default function UpdateHotel() {
       </AppBar>
       <Drawer
         variant="permanent"
-        open={open}
-        sx={{
-          "& .MuiDrawer-paper": {
-            backgroundColor: "rgba(255, 255, 255, 0.7)",
-            height: "100vh",
-          },
-        }}
+        open={openDrawer}
+        sx={{ "& .MuiDrawer-paper": { backgroundColor: "rgba(255, 255, 255, 0.7)", height: "100vh" } }}
       >
-        <Toolbar
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            px: [1],
-          }}
-        >
+        <Toolbar sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", px: [1] }}>
           <IconButton onClick={toggleDrawer}>
             <ChevronLeftIcon />
           </IconButton>
@@ -565,17 +509,13 @@ export default function UpdateHotel() {
           backdropFilter: "blur(10px)",
           borderRadius: "20px",
           marginBottom: "20px",
-          overflowY: "auto", 
-          overflowX: "hidden", 
+          overflowY: "auto",
+          overflowX: "hidden",
         }}
       >
         <ToastContainer />
         <div style={{ flex: 1 }}>
-          <Typography
-            variant="h3"
-            textAlign="center"
-            sx={{ color: handleColor() }}
-          >
+          <Typography variant="h3" textAlign="center" sx={{ color: handleColor() }}>
             Update Hotel
           </Typography>
           <Grid container spacing={2} sx={{ marginTop: "1vh" }}>
@@ -586,18 +526,10 @@ export default function UpdateHotel() {
                 variant="outlined"
                 fullWidth
                 value={title || data?.title}
-                onChange={(e) => {
-                  handleTitleChange(e);
-                }}
+                onChange={handleTitleChange}
                 helperText={titleerror}
-                error={false}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!titleerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
               <TextField
                 id="outlined-basic"
@@ -605,18 +537,11 @@ export default function UpdateHotel() {
                 variant="outlined"
                 fullWidth
                 value={category || data?.category}
-                onChange={(e) => {
-                  handleCategoryChange(e);
-                }}
+                sx={{ marginTop: "2vh" }}
+                onChange={(e) => handleCategoryChange(e)}
                 helperText={categoryerror}
-                error={false}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!categoryerror}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
@@ -626,246 +551,125 @@ export default function UpdateHotel() {
                 variant="outlined"
                 fullWidth
                 value={maindescription || data?.maindescription}
-                onChange={(e) => {
-                  handleMaindescriptionChange(e);
-                }}
+                onChange={(e) => handleMaindescriptionChange(e)}
                 helperText={maindescriptionerror}
-                error={false}
-                inputProps={{
-                  maxLength: 100,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                error={!!maindescriptionerror}
+                inputProps={{ maxLength: 100 }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 id="outlined-multiline-static"
-                label="Description "
+                label="Description"
                 variant="outlined"
                 multiline
                 fullWidth
                 value={description || data?.description}
-                onChange={(e) => {
-                  handleDescriptionChange(e);
-                }}
+                onChange={(e) => handleDescriptionChange(e)}
                 helperText={descriptionerror}
                 rows={5}
-                inputProps={{
-                  maxLength: 400,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400 }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <MuiFileInput
-                sx={{ height: "8vh" }}
-                fullWidth
-                value={image1}
-                label="Upload your image"
-                onChange={(e) => {
-                  handleImage1Change(e);
-                }}
-                helperText={image1error}
-                error={false}
-                InputProps={{
-                  inputProps: {
-                    accept: "image/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
-              />
-              <MuiFileInput
-                sx={{ height: "8vh" }}
-                fullWidth
-                error={false}
-                label="Upload your image"
-                value={image2}
-                helperText={image2error}
-                onChange={(e) => {
-                  handleImage2Change(e);
-                }}
-                InputProps={{
-                  inputProps: {
-                    accept: "image/*",
-                  },
-                  endAdornment: <AttachFileIcon />,
-                }}
-              />
-                <TextField
-                id="outlined-multiline-static"
-                label="Virtual Video Link"
+              {/* Replace file inputs with URL text fields */}
+              <TextField
+                id="outlined-image1-url"
+                label="Image URL 1"
                 variant="outlined"
                 fullWidth
-                value={virtualVideo || data?.VirtualVideo}
-                onChange={(e) => {
-                  handleVirtualVideoChange(e);
-                }}
-                helperText={virtualVideoerror}
-                inputProps={{
-                  maxLength: 400,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                value={image1 || data?.image}
+                onChange={handleImage1Change}
+                helperText={image1error}
+                error={!!image1error}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+              />
+              <TextField
+                id="outlined-image2-url"
+                label="Image URL 2"
+                variant="outlined"
+                fullWidth
+                value={image2 || data?.image1}
+                onChange={handleImage2Change}
+                helperText={image2error}
+                error={!!image2error}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+                sx={{ marginTop: "1vh" }}
               />
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-              }}
-            >
+            <Grid item xs={12} sm={6} sx={{ display: "flex", flexDirection: "row" }}>
               <TextField
-                id="outlined-basic"
-                label="Price "
+                id="outlined-price"
+                label="Price"
                 variant="outlined"
                 value={price || data?.price}
-                onChange={(e) => {
-                  handlePriceChange(e);
-                }}
-                error={false}
+                onChange={handlePriceChange}
+                error={!!priceerror}
                 helperText={priceerror}
                 sx={{ marginLeft: "1vw", width: "15vw" }}
-                inputProps={{
-                  maxLength: 400,
-                  type: "number",
-                  onInput: handleInputChange,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400, type: "number", onInput: handleInputChange }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
-
               <TextField
-                id="outlined-basic"
-                label="No of Tickets "
+                id="outlined-NoRooms"
+                label="No of Rooms"
                 variant="outlined"
                 value={NoRooms || data?.NoRooms}
-                onChange={(e) => {
-                  handleNoRoomsChange(e);
-                }}
-                error={false}
+                onChange={(e) => handleNoRoomsChange(e)}
+                error={!!NoRoomserror}
                 helperText={NoRoomserror}
                 sx={{ marginLeft: "1vw", width: "15vw" }}
-                inputProps={{
-                  maxLength: 400,
-                  type: "number",
-                  onInput: handleInputChange,
-                }}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                inputProps={{ maxLength: 400, type: "number", onInput: handleInputChange }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
-
             <Grid item xs={12} sm={6}>
               <TextField
-                id="outlined-basic-multiline"
-                label="Address 2(City, State, Country, Pincode)"
+                id="outlined-address1"
+                label="Address 1 (House No, Street Name)"
+                variant="outlined"
+                value={Address || data?.Address}
+                onChange={(e) => handleAddressChange(e)}
+                helperText={Addresserror}
+                error={!!Addresserror}
+                fullWidth
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                id="outlined-address2"
+                label="Address 2 (City, State, Country, Pincode)"
                 variant="outlined"
                 value={Address1 || data?.Address1}
-                onChange={(e) => {
-                  handleAddress1Change(e);
-                }}
+                onChange={(e) => handleAddress1Change(e)}
                 helperText={Address1error}
-                error={false}
+                error={!!Address1error}
                 fullWidth
                 multiline
                 rows={2}
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
+                InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                id="outlined-basic"
-                label="Address 1(House No, Street Name)"
-                variant="outlined"
-                value={Address || data?.Address}
-                onChange={(e) => {
-                  handleAddressChange(e);
-                }}
-                helperText={Addresserror}
-                error={false}
-                fullWidth
-                InputProps={{
-                  sx: {
-                    color: handleColor(),
-                    fontSize: "20px",
-                    borderRadius: "20px",
-                  },
-                }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "row",
-                  justifyContent: "space-evenly",
-                }}
-              >
+              <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-evenly" }}>
                 <TextField
-                  id="outlined-basic"
-                  label="Add Google Map Link (use embeded map)"
+                  id="outlined-googlemap-url"
+                  label="Google Map Embed URL"
                   variant="outlined"
                   value={googlemap || data?.location}
                   helperText={googlemaperror}
-                  sx={{
-                    marginBottom: "2vh",
-                  }}
-                  onChange={(e) => {
-                    handleGooglemapChange(e);
-                  }}
-                  error={false}
-                  InputProps={{
-                    sx: {
-                      color: handleColor(),
-                      fontSize: "20px",
-                      borderRadius: "20px",
-                    },
-                  }}
+                  sx={{ marginBottom: "2vh" }}
+                  onChange={(e) => handleGooglemapChange(e)}
+                  error={!!googlemaperror}
+                  InputProps={{ sx: { color: handleColor(), fontSize: "20px", borderRadius: "20px" } }}
                 />
                 <MuiTelInput
                   value={tel || data?.usertel}
-                  onChange={(e) => {
-                    handleTelChange(e);
-                  }}
-                  style={{
-                    color: handleColor(),
-                  }}
+                  onChange={(e) => handleTelChange(e)}
+                  style={{ color: handleColor() }}
                   label="Telephone"
                 />
               </div>
@@ -882,7 +686,7 @@ export default function UpdateHotel() {
                   color: "white",
                   borderRadius: "20px",
                 }}
-                onClick={() => handleOpen()}
+                onClick={() => setOpenModal(true)}
               >
                 Check how to add google map
               </Button>
@@ -890,32 +694,23 @@ export default function UpdateHotel() {
             <Grid item xs={12} sm={6}>
               <Iframe
                 id="myId"
-                src={googlemap}
+                src={googlemap || data?.location}
                 width="350vw"
-                height="100vh"
+                height="200vh"
                 styles={{ borderRadius: "20px" }}
                 allowfullscreen="true"
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
               />
             </Grid>
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              sx={{
-                justifyContent: "right",
-                display: "flex",
-                alignItems: "right",
-              }}
-            >
+            <Grid item xs={12} sm={6} sx={{ justifyContent: "right", display: "flex", alignItems: "center" }}>
               {loading ? (
                 <CircularProgress variant="determinate" value={progress} />
               ) : (
                 <Button
                   variant="contained"
                   sx={{
-                    marginTop: "2vh",
+                    marginTop: "4vh",
                     width: "10vw",
                     height: "5vh",
                     marginLeft: "auto",
@@ -936,8 +731,8 @@ export default function UpdateHotel() {
         </div>
       </Box>
       <Modal
-        open={openmodal}
-        onClose={handleClose}
+        open={openModal}
+        onClose={() => setOpenModal(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
@@ -957,91 +752,45 @@ export default function UpdateHotel() {
           <Carousel>
             <Typography variant="h5" textAlign="center">
               Step 1 : Follow this link{" "}
-              <Link
-                href="https://www.embed-map.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Link href="https://www.embed-map.com" target="_blank" rel="noopener noreferrer">
                 https://www.embed-map.com
               </Link>
             </Typography>
             <div>
               <Typography variant="h6" textAlign="center">
                 Step 2 : Enter Location{" "}
-                <Link
-                  href="https://www.embed-map.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <Link href="https://www.embed-map.com" target="_blank" rel="noopener noreferrer">
                   https://www.embed-map.com
                 </Link>
               </Typography>
-              <img
-                src={GoogleMapImage1}
-                alt="2"
-                border="0"
-                width="100%"
-                height="100%"
-              />
-            </div>
-
-            <div>
-              <Typography variant="h6" textAlign="center">
-                Step 3 : Enter Click Generate HTML code{" "}
-                <Link
-                  href="https://www.embed-map.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  https://www.embed-map.com
-                </Link>
-              </Typography>
-              <img
-                src={GoogleMapImage2}
-                alt="2"
-                border="0"
-                width="100%"
-                height="100%"
-              />
+              <img src={GoogleMapImage1} alt="Step 2" border="0" width="100%" height="100%" />
             </div>
             <div>
               <Typography variant="h6" textAlign="center">
-                Step 4 : Copy only url inside the iframe tag near src{" "}
-                <Link
-                  href="https://www.embed-map.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                Step 3 : Click Generate HTML code{" "}
+                <Link href="https://www.embed-map.com" target="_blank" rel="noopener noreferrer">
                   https://www.embed-map.com
                 </Link>
               </Typography>
-              <img
-                src={GoogleMapImage3}
-                alt="2"
-                border="0"
-                width="100%"
-                height="100%"
-              />
+              <img src={GoogleMapImage2} alt="Step 3" border="0" width="100%" height="100%" />
             </div>
             <div>
               <Typography variant="h6" textAlign="center">
-                Step 5 :Paste in the textfield and check if the map would appear
-                in a small window to the left{" "}
-                <Link
-                  href="https://www.embed-map.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                Step 4 : Copy only the URL inside the iframe tag (from the src attribute){" "}
+                <Link href="https://www.embed-map.com" target="_blank" rel="noopener noreferrer">
                   https://www.embed-map.com
                 </Link>
               </Typography>
-              <img
-                src={GoogleMapImage4}
-                alt="2"
-                border="0"
-                width="100%"
-                height="100%"
-              />
+              <img src={GoogleMapImage3} alt="Step 4" border="0" width="100%" height="100%" />
+            </div>
+            <div>
+              <Typography variant="h6" textAlign="center">
+                Step 5 : Paste the URL in the text field and check if the map appears in the preview{" "}
+                <Link href="https://www.embed-map.com" target="_blank" rel="noopener noreferrer">
+                  https://www.embed-map.com
+                </Link>
+              </Typography>
+              <img src={GoogleMapImage4} alt="Step 5" border="0" width="100%" height="100%" />
             </div>
           </Carousel>
         </Box>
