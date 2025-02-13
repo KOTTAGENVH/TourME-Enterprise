@@ -315,7 +315,7 @@ function ViewOneDestination() {
         </List>
       </Drawer>
 
-      {data !== undefined && data.length !== 0 ? (
+      {data !== undefined && data?.length !== 0 ? (
         <div
           style={{
             marginTop: "80px",
@@ -364,7 +364,7 @@ function ViewOneDestination() {
                 fontSize: "40px",
               }}
             >
-              {data.title}
+              {data?.title}
             </Typography>
             <MDBCarousel
               showIndicators
@@ -396,7 +396,7 @@ function ViewOneDestination() {
                 }}
               >
                 <img
-                  src={data.image}
+                  src={data?.image}
                   className="d-block w-100"
                   alt="..."
                   style={{
@@ -419,7 +419,7 @@ function ViewOneDestination() {
                 }}
               >
                 <img
-                  src={data.image1}
+                  src={data?.image1}
                   className="d-block w-100"
                   alt="..."
                   style={{
@@ -439,7 +439,7 @@ function ViewOneDestination() {
                 height: "80px",
               }}
               name="read-only"
-              value={data.rating}
+              value={data?.rating}
               readOnly
             />
             <Typography
@@ -452,7 +452,7 @@ function ViewOneDestination() {
                 fontSize: "30px",
               }}
             >
-              Ticket Price: Rs. {data.price}
+              Ticket Price: Rs. {data?.price}
             </Typography>
             <Typography
               variant="h6"
@@ -464,7 +464,7 @@ function ViewOneDestination() {
                 fontSize: "30px",
               }}
             >
-              No Tickets Avaialable: {data.NoTickets}
+              No Tickets Avaialable: {data?.NoTickets}
             </Typography>
             <Typography
               variant="h6"
@@ -476,7 +476,7 @@ function ViewOneDestination() {
                 fontSize: "30px",
               }}
             >
-              {data.description}
+              {data?.description}
             </Typography>
 
             <Typography
@@ -489,7 +489,7 @@ function ViewOneDestination() {
                 fontSize: "30px",
               }}
             >
-              Email : {data.useremail}
+              Email : {data?.useremail}
             </Typography>
             <Typography
               variant="h6"
@@ -501,7 +501,7 @@ function ViewOneDestination() {
                 fontSize: "30px",
               }}
             >
-              Phone : {data.usertel}
+              Phone : {data?.usertel}
             </Typography>
             <Typography
               variant="h6"
@@ -513,11 +513,11 @@ function ViewOneDestination() {
                 fontSize: "30px",
               }}
             >
-              Address : {data.Address}, {data.Address1}
+              Address : {data?.Address}, {data?.Address1}
             </Typography>
             <Iframe
               id="myId"
-              src={data.location}
+              src={data?.location}
               width="90%"
               height="195vh"
               styles={{

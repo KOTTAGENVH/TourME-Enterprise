@@ -301,7 +301,7 @@ function ViewOneHotel() {
         </List>
       </Drawer>
 
-      {data !== undefined && data.length !== 0 ? (
+      {data !== undefined && data?.length !== 0 ? (
         <div
           style={{
             marginTop: "80px",
@@ -350,7 +350,7 @@ function ViewOneHotel() {
                 fontSize: "40px",
               }}
             >
-              {data.title}
+              {data?.title}
             </Typography>
             <MDBCarousel
               showIndicators
@@ -382,7 +382,7 @@ function ViewOneHotel() {
                 }}
               >
                 <img
-                  src={data.image}
+                  src={data?.image}
                   className="d-block w-100"
                   alt="..."
                   style={{
@@ -405,7 +405,7 @@ function ViewOneHotel() {
                 }}
               >
                 <img
-                  src={data.image1}
+                  src={data?.image1}
                   className="d-block w-100"
                   alt="..."
                   style={{
@@ -425,7 +425,7 @@ function ViewOneHotel() {
                 height: "80px",
               }}
               name="read-only"
-              value={data.rating}
+              value={data?.rating}
               readOnly
             />
             <Typography
@@ -438,7 +438,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              Category : {data.category}
+              Category : {data?.category}
             </Typography>
             <Typography
               variant="h6"
@@ -450,7 +450,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              Room Price: Rs. {data.price}
+              Room Price: Rs. {data?.price}
             </Typography>
             <Typography
               variant="h6"
@@ -462,7 +462,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              No Of Rooms Avaialable: {data.NoRooms}
+              No Of Rooms Avaialable: {data?.NoRooms}
             </Typography>
             <Typography
               variant="h6"
@@ -474,7 +474,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              {data.description}
+              {data?.description}
             </Typography>
 
             <Typography
@@ -487,7 +487,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              Email : {data.useremail}
+              Email : {data?.useremail}
             </Typography>
             <Typography
               variant="h6"
@@ -499,7 +499,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              Phone : {data.usertel}
+              Phone : {data?.usertel}
             </Typography>
             <Typography
               variant="h6"
@@ -511,7 +511,7 @@ function ViewOneHotel() {
                 fontSize: "30px",
               }}
             >
-              Address : {data.Address}, {data.Address1}
+              Address : {data?.Address}, {data?.Address1}
             </Typography>
             <Button
               sx={{
@@ -531,7 +531,7 @@ function ViewOneHotel() {
             </Button>
             <Iframe
               id="myId"
-              src={data.location}
+              src={data?.location}
               width="90%"
               height="195vh"
               styles={{
