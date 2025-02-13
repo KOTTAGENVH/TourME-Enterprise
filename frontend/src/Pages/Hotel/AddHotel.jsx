@@ -94,7 +94,6 @@ export default function AddHotel() {
   const settings = ["Profile", "Logout"];
   const [anchorElUser, setAnchorElUser] = React.useState(null);
   const [darkMode, setDarkMode] = React.useState(false);
-  // Use URL strings instead of file objects
   const [image1, setImage1] = React.useState("");
   const [image2, setImage2] = React.useState("");
   const [googlemap, setGooglemap] = React.useState("");
@@ -177,7 +176,6 @@ export default function AddHotel() {
     }
   };
 
-  // Updated validation schema for URL inputs instead of files
   const validationSchema = Yup.object().shape({
     title: Yup.string().trim().required("Hotel Name is required"),
     category: Yup.string().trim().required("Category is required"),
@@ -305,7 +303,6 @@ export default function AddHotel() {
         { abortEarly: false }
       );
 
-      // Use the URL values directly from the text fields
       const url1 = image1;
       const url2 = image2;
 

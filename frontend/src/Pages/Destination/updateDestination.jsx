@@ -235,7 +235,7 @@ export default function UpdateDestination() {
     setDescription(e.target.value);
     setDescriptionerror("");
   };
-  // For URL inputs, update the state with the text field value
+
   const handleImage1Change = (e) => {
     setImage1(e.target.value);
     setImage1error("");
@@ -289,7 +289,6 @@ export default function UpdateDestination() {
         { abortEarly: false }
       );
 
-      // Use updated URLs or fall back to the existing ones from data
       const finalUrl1 = image1 || data?.image || "";
       const finalUrl2 = image2 || data?.image1 || "";
 

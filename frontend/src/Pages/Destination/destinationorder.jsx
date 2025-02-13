@@ -134,14 +134,11 @@ export default function Destinationorder() {
     formattedSelectedDate = dateObject.toLocaleDateString("en-GB");
   }
 
-  // Apply filter function to the data if data is available
-  const filteredData = data ?? []; // Providing a default value for data
 
-  // Only filter data if the selected date is defined
+  const filteredData = data ?? []; 
+
   const filteredResults = selectedDate
     ? filteredData.filter((item) => {
-        // Format item date to DD/MM/YYYY
-        // const itemDate = item.date.split("/").reverse().join("/");
         return item?.date === formattedSelectedDate;
       })
     : filteredData;

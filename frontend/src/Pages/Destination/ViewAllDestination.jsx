@@ -177,7 +177,6 @@ function ViewAllDestination() {
     queryFn: () => getDestinationByEmail(loggedUser?.email),
   });
 
-  // Filtering destinations based on the search text
   const filteredDestinations = data?.destinations?.filter((destination) =>
     destination?.title?.toLowerCase().includes(searchText?.toLowerCase())
   );
@@ -196,7 +195,7 @@ function ViewAllDestination() {
       >
         <Toolbar
           sx={{
-            pr: "24px", // keep right padding when drawer closed
+            pr: "24px", 
           }}
         >
           <IconButton

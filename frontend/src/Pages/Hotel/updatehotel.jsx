@@ -100,7 +100,6 @@ export default function UpdateHotel() {
   const settings = ["Profile", "Logout"];
   const [anchorElUser, setAnchorElUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-  // Manage images as URL strings
   const [image1, setImage1] = useState("");
   const [image2, setImage2] = useState("");
   const [virtualVideo, setVirtualVideo] = useState("");
@@ -322,7 +321,6 @@ export default function UpdateHotel() {
         { abortEarly: false }
       );
 
-      // Use the URL values entered (or fall back to previously stored values)
       const finalUrl1 = image1 || data?.image || "";
       const finalUrl2 = image2 || data?.image1 || "";
 
