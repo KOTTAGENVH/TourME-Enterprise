@@ -343,7 +343,7 @@ function ViewOneSouvenier() {
                 fontSize: "40px",
               }}
             >
-              {data.title}
+              {data?.title}
             </Typography>
             <MDBCarousel
               showIndicators
@@ -376,7 +376,7 @@ function ViewOneSouvenier() {
                 }}
               >
                 <img
-                  src={data.image}
+                  src={data?.image}
                   className="d-block w-100"
                   alt="image1"
                   style={{
@@ -402,7 +402,7 @@ function ViewOneSouvenier() {
                 }}
               >
                 <img
-                  src={data.image1}
+                  src={data?.image1}
                   className="d-block w-100"
                   alt="image2"
                   style={{
@@ -437,7 +437,7 @@ function ViewOneSouvenier() {
                     height: "100%",
                   }}
                 >
-                  <source src={data.video} type="video/mp4" />
+                  <source src={data?.video} type="video/mp4" />
                   Your browser does not support the video tag.
                 </video>
               </MDBCarouselItem>
@@ -453,7 +453,7 @@ function ViewOneSouvenier() {
                 height: "80px",
               }}
               name="read-only"
-              value={data.rating}
+              value={data?.rating}
               readOnly
             />
             <Typography
@@ -466,7 +466,7 @@ function ViewOneSouvenier() {
                 fontSize: "30px",
               }}
             >
-              Price: Rs. {data.price}
+              Price: Rs. {data?.price}
             </Typography>
             <Typography
               variant="h6"
@@ -478,7 +478,7 @@ function ViewOneSouvenier() {
                 fontSize: "30px",
               }}
             >
-              Quantity Available: {data.Quatity}
+              Quantity Available: {data?.Quatity}
             </Typography>
             <Typography
               variant="h6"
@@ -490,7 +490,7 @@ function ViewOneSouvenier() {
                 fontSize: "30px",
               }}
             >
-              {data.description}
+              {data?.description}
             </Typography>
 
             <Typography
@@ -503,7 +503,7 @@ function ViewOneSouvenier() {
                 fontSize: "30px",
               }}
             >
-              Email : {data.useremail}
+              Email : {data?.useremail}
             </Typography>
             <Typography
               variant="h6"
@@ -515,7 +515,7 @@ function ViewOneSouvenier() {
                 fontSize: "30px",
               }}
             >
-              Phone : {data.usertel}
+              Phone : {data?.usertel}
             </Typography>
             <Typography
               variant="h6"
@@ -527,7 +527,7 @@ function ViewOneSouvenier() {
                 fontSize: "30px",
               }}
             >
-              Address : {data.Address}, {data.Address1}
+              Address : {data?.Address}, {data?.Address1}
             </Typography>
             <Button
               sx={{
