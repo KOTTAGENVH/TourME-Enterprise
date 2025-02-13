@@ -121,11 +121,8 @@ function ViewAllSouvenier() {
     if (setting === "Logout") {
       dispatch(signOutAction());
       navigate("/");
-      handleCloseUserMenu();
     } else if (setting === "Profile") {
       navigate("/profile");
-    } else {
-      handleCloseUserMenu();
     }
   };
 
@@ -144,22 +141,18 @@ function ViewAllSouvenier() {
     setShowClearIcon(false);
   };
 
-  const handleColor = () => {
-    if (darkmode) {
-      return "white";
-    } else {
-      return "black";
-    }
-  };
+  const handleColor = () => (darkmode ? "white" : "black");
 
   const { data, isLoading, error, isError } = useQuery({
     queryFn: () => getSouvenierByEmail(loggedUser?.email),
   });
 
-  // Filtering destinations based on the search text
-  const filteredSouveniers = data?.length ? data.filter((souvenier) =>
-  souvenier.title?.toLowerCase()?.includes(searchText?.toLowerCase())
-) : [];
+  // Filtering souvenirs based on the search text
+  const filteredSouveniers = data?.length
+    ? data.filter((souvenier) =>
+        souvenier.title?.toLowerCase().includes(searchText?.toLowerCase())
+      )
+    : [];
 
   return (
     <Box sx={{ display: "flex" }}>
@@ -173,11 +166,7 @@ function ViewAllSouvenier() {
           boxShadow: "none",
         }}
       >
-        <Toolbar
-          sx={{
-            pr: "24px", // keep right padding when drawer closed
-          }}
-        >
+        <Toolbar sx={{ pr: "24px" }}>
           <IconButton
             edge="start"
             color="inherit"
@@ -190,13 +179,7 @@ function ViewAllSouvenier() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography
-            component="h1"
-            variant="h6"
-            color="inherit"
-            noWrap
-            sx={{ flexGrow: 1 }}
-          >
+          <Typography component="h1" variant="h6" color="inherit" noWrap sx={{ flexGrow: 1 }}>
             Souvenier Management
           </Typography>
           <FormGroup
@@ -219,7 +202,6 @@ function ViewAllSouvenier() {
               }
             />
           </FormGroup>
-
           <Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
             <IconButton
               size="large"
@@ -232,25 +214,21 @@ function ViewAllSouvenier() {
               <MenuIcon />
             </IconButton>
           </Box>
-
-          <Box
-            sx={{
-              flexGrow: 1,
-              justifyContent: "flex-end",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
+          <Box sx={{ flexGrow: 1, justifyContent: "flex-end", display: "flex", alignItems: "center" }}>
             <Tooltip title="Open settings">
               <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-                <Avatar alt="Remy Sharp" src="/static/images/avatar/2.jpg" />
+                <Avatar
+                  alt="Remy Sharp"
+                  src="/static/images/avatar/2.jpg"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/static/images/avatar/default.jpg";
+                  }}
+                />
               </IconButton>
             </Tooltip>
             <Menu
-              sx={{
-                mt: "45px",
-                marginLeft: "auto",
-              }}
+              sx={{ mt: "45px", marginLeft: "auto" }}
               id="menu-appbar"
               anchorEl={anchorElUser}
               anchorOrigin={{
@@ -266,10 +244,7 @@ function ViewAllSouvenier() {
               onClose={handleCloseUserMenu}
             >
               {settings.map((setting) => (
-                <MenuItem
-                  key={setting}
-                  onClick={() => handleMenuItemClick(setting)}
-                >
+                <MenuItem key={setting} onClick={() => handleMenuItemClick(setting)}>
                   <Typography textAlign="center">{setting}</Typography>
                 </MenuItem>
               ))}
@@ -305,14 +280,12 @@ function ViewAllSouvenier() {
           <Divider sx={{ my: 1 }} />
         </List>
       </Drawer>
-
-      {data !== undefined && data.length !== 0 ? (
+      {data?.length > 0 ? (
         <div>
           <TextField
             required
             id="standard-required"
             defaultValue="Search"
-            endAdornmentIcon={<SearchIcon />}
             variant="standard"
             value={searchText}
             onChange={handleInputChange}
@@ -353,6 +326,7 @@ function ViewAllSouvenier() {
           >
             {filteredSouveniers?.map((souvenier) => (
               <SouvenierBox
+                key={souvenier._id}
                 _id={souvenier._id}
                 title={souvenier.title}
                 maindescription={souvenier.maindescription}
